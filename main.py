@@ -18,8 +18,6 @@ import numpy as np
 
 driver = webdriver.Chrome('C:\webdriver\chromedriver.exe')
 
-
-
 #----------------------------------------------------------------------------Summary----------------------------------------------------
 
 def Summary_Extract(Company_name):
@@ -448,12 +446,9 @@ def Financial_Extract_Quarterly(Company_name, Base_Url_Financials, Show_Type):
 
 #----------------------------------------------------------------------------Main Function---------------------------------------------------------
 
+#Error in company "BABA" in Profile
 
-
-
-
-
-Company_name_list = ["IBM","AMZN","BABA","TBIO","QS","CRSR","AAPL","HOG"]
+Company_name_list = ["IBM","AMZN","TBIO","QS","CRSR","AAPL","HOG"]
 
 for Company_name in Company_name_list:
     Summary = Summary_Extract(Company_name)
@@ -514,19 +509,6 @@ for Company_name in Company_name_list:
     #And finally save the file
     Excelwriter.save()
 
-
-#-----------------------------------------For Profile dfs
-# writer = pd.ExcelWriter('Yahoofin.xlsx',engine='xlsxwriter')
-# workbook=writer.book
-# worksheet=workbook.add_worksheet('Result')
-# writer.sheets['Result'] = worksheet
-# worksheet.write_string(0, 0, namestr(Profile, globals()))
-
-# Profile.to_excel(writer,sheet_name='Result',startrow=1 , startcol=0)
-# worksheet.write_string(Profile.shape[0] + 4, 0, namestr(Executives, globals()))
-
-
-# writer.save()
 
 
 #--------------------------------------------------------------Close and Exit
