@@ -18,7 +18,8 @@ from tabulate import tabulate
 from varname import argname2 
 from pandas import DataFrame
 import inspect
-from datetime import date
+from requests_html import HTMLSession
+from urllib.parse import urlparse
 
 
 def resource_path(relative_path):
