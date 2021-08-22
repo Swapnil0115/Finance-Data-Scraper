@@ -21,6 +21,7 @@ import inspect
 from requests_html import HTMLSession
 from urllib.parse import urlparse
 from datetime import date
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 def resource_path(relative_path):
@@ -35,8 +36,22 @@ def resource_path(relative_path):
 #chrome_options.add_argument('headless')
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--log-level=3')
+chrome_options.add_argument('--headless')
+chrome_options.add_argument("--window-size=1920,1080")
+chrome_options.add_argument("--disable-extensions")
+chrome_options.add_argument("--proxy-server='direct://'")
+chrome_options.add_argument("--proxy-bypass-list=*")
+chrome_options.add_argument("--start-maximized")
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--ignore-certificate-errors')
+chrome_options.add_argument('--allow-running-insecure-content')
 driver = webdriver.Chrome('C:\webdriver\chromedriver.exe',chrome_options=chrome_options)
+#driver.set_window_position(-10000,0)
 #----------------------------------------------------------------------------Summary----------------------------------------------------
+
+percent_done = 0
 
 def Summary_Extract(Company_name_list,Company_name):
     URL_summary = "https://finance.yahoo.com/quote/" + Company_name
@@ -86,8 +101,8 @@ def Summary_Extract(Company_name_list,Company_name):
             #print(summary_df[col])
         except:
             summary_df.loc[summary_df[col] == '-', col] = np.nan    # REPLACE HYPHEN WITH NaNs
-
-    #print(summary_df)
+    
+    #print(percent_done+=5.5)
     return summary_df
 
 def News_Extract(Company_name):
@@ -210,52 +225,105 @@ def Statistics_Extract(Company_name):
 def Historical_Extract(Company_name):
     URL_Hist = "https://finance.yahoo.com/quote/" + Company_name + "/history"
     driver.get(URL_Hist)
-    time.sleep(7)
+
+    html = driver.execute_script('return document.body.innerHTML;')
+    # BeautifulSoup the xml
+    income_soup = BeautifulSoup(html, 'lxml')
+    time.sleep(3)
     html2 = driver.find_element_by_tag_name('html')
     html2.send_keys(Keys.PAGE_DOWN)
-    driver.implicitly_wait(10)
-    
 
-    try:
-        Time_Period_click = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div')
-        Time_Period_click.click()
-    except:
-        try:
-            time.sleep(10)
-            html2.send_keys(Keys.PAGE_DOWN)
-            Time_Period_click = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div')
-            Time_Period_click.click()
-        except:
-            time.sleep(10)
-            html2.send_keys(Keys.PAGE_DOWN)
-            Time_Period_click = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div')
-            Time_Period_click.click()
+    WebDriverWait(driver, 10)
+    time.sleep(3)
 
-        
+    Time_Period_click = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div')
+    action = ActionChains(driver)
+    action.click(on_element = Time_Period_click)
+    action.perform()
+
+    Max_Data = driver.find_element_by_xpath('//*[@id="dropdown-menu"]/div/ul[2]/li[3]/button')
+    action = ActionChains(driver)
+    action.click(on_element = Max_Data)
+    action.perform()
+
+    Apply = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button')
+    action = ActionChains(driver)
+    action.click(on_element = Apply)
+    action.perform()
+
+
+    # try:
+    #     wait = WebDriverWait(driver, 10)
+    #     EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div'))
+    #     Time_Period_click = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div')
+    # except:
+    #     try:
+    #         time.sleep(5)
+    #         wait = WebDriverWait(driver, 10)
+    #         EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div'))
+    #         html2.send_keys(Keys.PAGE_DOWN)
+    #         Time_Period_click = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div')
+    #         Time_Period_click.click()
+    #     except:
+    #         time.sleep(10)
+    #         wait = WebDriverWait(driver, 10)
+    #         EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div'))
+    #         html2.send_keys(Keys.PAGE_DOWN)
+    #         Time_Period_click = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div')
+    #         Time_Period_click.click()
+
+    # time.sleep(1)
     
-    try:
-        Max_Data = driver.find_element_by_xpath('//*[@id="dropdown-menu"]/div/ul[2]/li[4]/button')
-        Max_Data.click()
-        time.sleep(2)
-    except:
-        time.sleep(10)
-        Max_Data = driver.find_element_by_xpath('//*[@id="dropdown-menu"]/div/ul[2]/li[4]/button')
-        Max_Data.click()
-        time.sleep(2)
+    # try:
+    #     wait = WebDriverWait(driver, 10)
+    #     EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/section/div[1]/div[1]/div[1]/div/div/div/div/div/ul[2]/li[4]'))
+    #     Max_Data = driver.find_element_by_xpath('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/section/div[1]/div[1]/div[1]/div/div/div/div/div/ul[2]/li[4]')
+    #     Max_Data.click()
+    # except:
+    #     try:
+    #         time.sleep(5)
+    #         EC.element_to_be_clickable((By.XPATH, '//*[@id="dropdown-menu"]/div/ul[2]/li[4]'))
+    #         Max_Data = driver.find_element_by_xpath('//*[@id="dropdown-menu"]/div/ul[2]/li[4]')
+    #         Max_Data.click()
+    #     except:
+    #         try:
+    #             time.sleep(10)
+    #             EC.element_to_be_clickable((By.XPATH, '//*[@id="dropdown-menu"]/div/ul[2]/li[4]/button'))
+    #             Max_Data = driver.find_element_by_xpath('//*[@id="dropdown-menu"]/div/ul[2]/li[4]/button')
+    #             Max_Data.click()
+    #         except:
+    #             Historical_Extract(Company_name)
+
+    time.sleep(1)
 
     startyear_str = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/div[1]/div/div/div/span').text
     startyear = startyear_str[8:12]
 
-    try:
-        Apply = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button')
-        Apply.click()
-        time.sleep(2)
-    except:
-        time.sleep(10)
-        Apply = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button')
-        Apply.click()
-        time.sleep(2)
+    # try:
+    #     time.sleep(2)
+    #     EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button'))
+    #     Apply = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button')
+    #     Apply.click()
+        
+    # except:
+    #     try:
+    #         time.sleep(5)
+    #         EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button'))
+    #         Apply = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button')
+    #         Apply.click()
+    #     except:
+    #         try:
+    #             time.sleep(10)
+    #             EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button'))
+    #             Apply = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button')
+    #             Apply.click()
+    #         except:
+    #             time.sleep(15)
+    #             EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button'))
+    #             Apply = driver.find_element_by_xpath('//*[@id="Col1-1-HistoricalDataTable-Proxy"]/section/div[1]/div[1]/button')
+    #             Apply.click()
 
+    time.sleep(3)
     today = date.today()
     endyear = today.strftime("%Y")
     
@@ -332,8 +400,10 @@ def Historical_Extract(Company_name):
         except:
             hist_df.loc[hist_df[col] == '-', col] = np.nan    # REPLACE HYPHEN WITH NaNs
             
+    Dividends_hist_df = pd.DataFrame(Dividends_hist,columns = ["Date","Dividends"])
+    Stock_Split_df = pd.DataFrame(Stock_Split,columns=['Date', 'Splits'])
     #print(hist_df)
-    return hist_df
+    return hist_df,Dividends_hist_df,Stock_Split_df
 
 #----------------------------------------------------------------------------Profile-----------------------------------------------------------------
 
@@ -396,15 +466,18 @@ def Financial_Extract(Company_name, Base_Url_Financials, Show_Type):
     # if(Financial_Choice == 1):
     #     #TO click Quarterly
     #     driver.find_element_by_xpath('//*[@id="Col1-1-Financials-Proxy"]/section/div[1]/div[2]/button/div').click()
-
+    time.sleep(2)
     Expand = driver.find_elements_by_xpath('//*[@id="Col1-1-Financials-Proxy"]/section/div[2]/button')[0]
-    Expand.click()
+    action = ActionChains(driver)
+    action.click(on_element = Expand)
+    action.perform()
+
     driver.implicitly_wait(20)
 
     html = driver.execute_script('return document.body.innerHTML;')
     # BeautifulSoup the xml
     income_soup = BeautifulSoup(html, 'lxml')
-
+    time.sleep(2)
 
     # ## Find relevant data structures for financials
     div_list = []
@@ -506,11 +579,22 @@ def Financial_Extract_Quarterly(Company_name, Base_Url_Financials, Show_Type):
     urlfinancial = "https://finance.yahoo.com/quote/" + Company_name + "/" + Base_Url_Financials
     driver.get(urlfinancial)
 
-    driver.find_element_by_xpath('//*[@id="Col1-1-Financials-Proxy"]/section/div[1]/div[2]/button/div').click()
+    time.sleep(2)
 
+    WebDriverWait(driver, 10)
+    EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-Financials-Proxy"]/section/div[1]/div[2]/button/div'))
+    Expand1 = driver.find_element_by_xpath('//*[@id="Col1-1-Financials-Proxy"]/section/div[1]/div[2]/button/div')
+    action = ActionChains(driver)
+    action.click(on_element = Expand1)
+    action.perform()
+    time.sleep(2)
+
+    EC.element_to_be_clickable((By.XPATH, '//*[@id="Col1-1-Financials-Proxy"]/section/div[2]/button'))
     Expand = driver.find_elements_by_xpath('//*[@id="Col1-1-Financials-Proxy"]/section/div[2]/button')[0]
-    Expand.click()
-    time.sleep(10)
+    action = ActionChains(driver)
+    action.click(on_element = Expand)
+    action.perform()
+    time.sleep(3)
 
     html = driver.execute_script('return document.body.innerHTML;')
     # BeautifulSoup the xml
@@ -700,18 +784,42 @@ def Holders_Extract(Company_name):
 
     return dfs,dfs1,dfs2
 
+
 def Insider_Roster_Extract(Company_name):
     URL_stat = "https://finance.yahoo.com/quote/" + Company_name + "/insider-roster"
     driver.get(URL_stat)
     driver.implicitly_wait(10)
-
+    time.sleep(10)
     html = driver.execute_script('return document.body.innerHTML;')
     # BeautifulSoup the xml
     income_soup = BeautifulSoup(html, 'lxml')
-    dfs = pd.read_html(html)[0]    
-    return dfs
+    #dfs = pd.read_html(html)[0]    
 
-def Insider_Transactions_Extract(Company_name):
+    td_list = []
+
+    for i in income_soup.find_all("td",{"class":"Ta(end)"}):
+        td_list.append(i.text)
+
+    indiv_list = []
+    design_list = []
+
+    for i in income_soup.find_all("td",{"class":"Ta(start)"}):
+        indiv_list.append(i.find("a").text)
+        design_list.append(i.text.replace((i.find("a").text),''))
+
+    # print(td_list)
+    # print(indiv_list)
+    # print(design_list)
+
+    td_list = list(zip(*[iter(td_list)]*3))
+    td_df = pd.DataFrame(td_list,columns = ["Most Recent Transaction","Date","Shares Owned as of Transaction Date"])
+
+    td_df.insert(0,"Individual or Entity",indiv_list)
+    td_df.insert(1,"Designation",design_list)
+
+    return td_df
+
+def Insider_Transactions_Extract1(Company_name):
     URL_stat = "https://finance.yahoo.com/quote/" + Company_name + "/insider-transactions"
     driver.get(URL_stat)
     driver.implicitly_wait(10)
@@ -721,10 +829,39 @@ def Insider_Transactions_Extract(Company_name):
     income_soup = BeautifulSoup(html, 'lxml')
     dfs = pd.read_html(html)[0]
     dfs1 = pd.read_html(html)[1]
-    dfs2 = pd.read_html(html)[2]
 
     #print(dfs,dfs1,dfs2)
-    return dfs,dfs1,dfs2
+    return dfs,dfs1
+
+def Insider_Transactions_Extract2(Company_name):
+    URL_stat = "https://finance.yahoo.com/quote/" + Company_name + "/insider-transactions"
+    driver.get(URL_stat)
+    driver.implicitly_wait(10)
+    time.sleep(5)
+
+    temp = driver.find_element_by_xpath('//*[@id="Col1-1-Holders-Proxy"]/section/div[2]/div[4]/table/tbody').text.splitlines()
+    temp = list(zip(*[iter(temp)]*3))
+
+    td_list = []
+    temp2 = []
+    for i in range(1,len(temp)+1):
+        for j in range(1,7):
+            temp2.append(driver.find_element_by_xpath('//*[@id="Col1-1-Holders-Proxy"]/section/div[2]/div[4]/table/tbody/tr['+str(i)+']/td['+str(j)+']').text)
+
+    for i in temp2:
+        if("\n" in i):
+            ind = i.find("\n")
+            ele1 = i[:ind]
+            ele2 = i[ind+1:]
+            td_list.append(ele1)
+            td_list.append(ele2)
+        else:
+            td_list.append(i)
+
+    td_list = list(zip(*[iter(td_list)]*7))
+
+    dfs2 = pd.DataFrame(td_list,columns = ["Insider","Designation","Transaction","Type","Value","Date","Shares"])
+    return dfs2
 
 def Error_Extract():
     error_list = ["Cannot scrape"]
@@ -747,6 +884,14 @@ def Error_Extract2():
 
     return df1,df2,df3
 
+def Error_Extract3():
+    error_list = ["Cannot scrape"]
+
+    df1 = pd.DataFrame(error_list)
+    df2 = pd.DataFrame(error_list)
+
+    return df1,df2
+
 
 #----------------------------------------------------------------------------Main Function---------------------------------------------------------
 
@@ -763,104 +908,184 @@ def main_fun(Company_name_list,wrong_tickers):
     today = date.today()
     exceldate = today.strftime("%b-%d-%Y")
     error_list = ["Cannot scrape"]
-
+    
     lossy_flag = 0
     lossy_tickers = []
     for Company_name in Company_name_list:
+        percent_done = 0
         try:
             Summary = Summary_Extract(Company_name_list,Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Summary = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             News = News_Extract(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             News = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Press = Press_Extract(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Press = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Statistics = Statistics_Extract(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Statistics = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
-            Historical_Data = Historical_Extract(Company_name)
+            Historical_Data,Dividends,Splits = Historical_Extract(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             try:
-                Historical_Data = Historical_Extract(Company_name)
+                Historical_Data,Dividends,Splits = Historical_Extract(Company_name)
+                percent_done+=5.5
+                print(str(percent_done)+"% Completed")
             except:
-                Historical_Data = pd.DataFrame(error_list)
+                Historical_Data,Dividends,Splits = Error_Extract2
+                percent_done+=5.5
+                print(str(percent_done)+"% Completed")
 
         try:
             Profile = Profile_Extract(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Profile = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Executives = Profile_Extract2(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Executives = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Income_Statement_Annual = Financial_Extract(Company_name, "financials",1)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Income_Statement_Annual = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Income_Statement_Quarterly = Financial_Extract_Quarterly(Company_name, "financials",1)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Income_Statement_Quarterly = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Balance_Sheet_Annual = Financial_Extract(Company_name, "balance-sheet",2)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Balance_Sheet_Annual = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Balance_Sheet_Quarterly = Financial_Extract_Quarterly(Company_name, "balance-sheet",2)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Balance_Sheet_Quarterly = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Cash_Flow_Annual = Financial_Extract(Company_name, "cash-flow",3)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Cash_Flow_Annual = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Cash_Flow_Quarterly = Financial_Extract_Quarterly(Company_name, "cash-flow",3)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Cash_Flow_Quarterly = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
             Earnings_Estimate,Revenue_Estimate,Earnings_History_DF,EPS_Trend,EPS_Revisions,Growth_Estimates = Analysis_Extract(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Earnings_Estimate,Revenue_Estimate,Earnings_History_DF,EPS_Trend,EPS_Revisions,Growth_Estimates = Error_Extract()
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         
         try:
             Major_Holders,Top_Institutional_Holders2,Top_Mutual_Fund_Holders = Holders_Extract(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Major_Holders,Top_Institutional_Holders2,Top_Mutual_Fund_Holders = Error_Extract2()
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         
         try:
             Insider_Roster = Insider_Roster_Extract(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
             Insider_Roster = pd.DataFrame(error_list)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
 
         try:
-            Ins_Transac_6_mo,Net_Institutional_Transac,Insider_Transac_2_yr = Insider_Transactions_Extract(Company_name)
+            Ins_Transac_6_mo,Net_Institutional_Transac = Insider_Transactions_Extract1(Company_name)
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
         except:
-            Ins_Transac_6_mo,Net_Institutional_Transac,Insider_Transac_2_yr = Error_Extract2()
+            Ins_Transac_6_mo,Net_Institutional_Transac = Error_Extract3()
+            percent_done+=5.5
+            print(str(percent_done)+"% Completed")
+
+        try:
+            Insider_Transac_2_yr = Insider_Transactions_Extract2(Company_name)
+            percent_done = 100
+            print(str(percent_done)+"% Completed")
+        except:
+            Insider_Transac_2_yr = pd.DataFrame(error_list)
+            percent_done = 100
+            print(str(percent_done)+"% Completed")
 
         # if(lossy_flag==1):
         #     lossy_tickers.append(Company_name)
         #--------------------------------------------------------------Saving all the dataframes into the excel file
 
         #dflist= [Income_Statement_Annual,Balance_Sheet_Annual,Cash_Flow_Annual]
-        dflist= [Profile,News,Press,Executives,Summary,Statistics,Historical_Data,Income_Statement_Annual,Income_Statement_Quarterly,Balance_Sheet_Annual,Balance_Sheet_Quarterly,Cash_Flow_Annual,Cash_Flow_Quarterly,Earnings_Estimate,Revenue_Estimate,Earnings_History_DF,EPS_Trend,EPS_Revisions,Growth_Estimates,Major_Holders,Top_Institutional_Holders2,Top_Mutual_Fund_Holders,Insider_Roster,Ins_Transac_6_mo,Net_Institutional_Transac,Insider_Transac_2_yr]
+        dflist= [Profile,News,Press,Executives,Summary,Statistics,Historical_Data,Dividends,Splits,Income_Statement_Annual,Income_Statement_Quarterly,Balance_Sheet_Annual,Balance_Sheet_Quarterly,Cash_Flow_Annual,Cash_Flow_Quarterly,Earnings_Estimate,Revenue_Estimate,Earnings_History_DF,EPS_Trend,EPS_Revisions,Growth_Estimates,Major_Holders,Top_Institutional_Holders2,Top_Mutual_Fund_Holders,Insider_Roster,Ins_Transac_6_mo,Net_Institutional_Transac,Insider_Transac_2_yr]
         for i in dflist:
             for col in i.columns[1:]:
                 try:
